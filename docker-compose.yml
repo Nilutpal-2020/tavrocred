@@ -1,0 +1,80 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tavrocred-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tavrocred
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tavrocred"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: tavrocred-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+      target: api
+    container_name: tavrocred-api
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+      ENV: "development"
+      DATABASE_URL: "postgres://postgres:postgres@postgres:5432/tavrocred?sslmode=disable"
+      JWT_SECRET: "super-secret-tavrocred-jwt-development-key-32bytes!"
+      JWT_EXPIRATION_MINUTES: "15"
+      REFRESH_TOKEN_EXPIRATION_DAYS: "30"
+      RUN_MIGRATIONS: "true"
+      MIGRATIONS_DIR: "/app/migrations"
+      CORS_ALLOWED_ORIGINS: "http://localhost:3000"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+      target: worker
+    container_name: tavrocred-worker
+    restart: unless-stopped
+    environment:
+      ENV: "development"
+      DATABASE_URL: "postgres://postgres:postgres@postgres:5432/tavrocred?sslmode=disable"
+      JWT_SECRET: "super-secret-tavrocred-jwt-development-key-32bytes!"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: tavrocred-web
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: "http://localhost:8080"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:

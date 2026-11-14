@@ -147,6 +147,10 @@ func (s *authService) generateTokenPair(ctx context.Context, user *User) (*AuthR
 		AccessToken:  accessToken,
 		RefreshToken: rawRefreshToken,
 		ExpiresIn:    expiresIn,
+		Tokens: TokenPair{
+			AccessToken:  accessToken,
+			RefreshToken: rawRefreshToken,
+			ExpiresIn:    expiresIn,
+		},
 	}, nil
 }
-

@@ -106,4 +106,3 @@ func TestRefreshAndLogoutRequest_Validation(t *testing.T) {
 	blankLogout := auth.LogoutRequest{RefreshToken: "   "}
 	assert.Error(t, blankLogout.Validate())
 }
-

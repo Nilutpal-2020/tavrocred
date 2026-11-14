@@ -13,14 +13,18 @@ type DatabasePinger interface {
 }
 
 type RouterConfig struct {
-	DB             DatabasePinger
-	AuthHandler    RouteRegisterer
-	PeerHandler    RouteRegisterer
-	AuthMiddleware func(http.Handler) http.Handler
-	RequestIDMW    func(http.Handler) http.Handler
-	LoggerMW       func(http.Handler) http.Handler
-	RecoverMW      func(http.Handler) http.Handler
-	TimeoutMW      func(http.Handler) http.Handler
+	DB               DatabasePinger
+	AuthHandler      RouteRegisterer
+	PeerHandler      RouteRegisterer
+	LoanHandler      RouteRegisterer
+	RepaymentHandler RouteRegisterer
+	BorrowerHandler  RouteRegisterer
+	CorsMW           func(http.Handler) http.Handler
+	AuthMiddleware   func(http.Handler) http.Handler
+	RequestIDMW      func(http.Handler) http.Handler
+	LoggerMW         func(http.Handler) http.Handler
+	RecoverMW        func(http.Handler) http.Handler
+	TimeoutMW        func(http.Handler) http.Handler
 }
 
 type RouteRegisterer interface {
@@ -30,7 +34,10 @@ type RouteRegisterer interface {
 func NewRouter(cfg RouterConfig) http.Handler {
 	r := chi.NewRouter()
 
-	// Global middleware stack
+	// Global middleware stack: CORS MUST be first to handle OPTIONS preflight immediately
+	if cfg.CorsMW != nil {
+		r.Use(cfg.CorsMW)
+	}
 	if cfg.RequestIDMW != nil {
 		r.Use(cfg.RequestIDMW)
 	}
@@ -69,6 +76,9 @@ func NewRouter(cfg RouterConfig) http.Handler {
 		})
 	})
 
+	// Interactive API Documentation
+	RegisterDocsRoutes(r)
+
 	// API v1 routes
 	r.Route("/api/v1", func(api chi.Router) {
 		if cfg.AuthHandler != nil {
@@ -77,8 +87,16 @@ func NewRouter(cfg RouterConfig) http.Handler {
 		if cfg.PeerHandler != nil {
 			cfg.PeerHandler.RegisterRoutes(api, cfg.AuthMiddleware)
 		}
+		if cfg.LoanHandler != nil {
+			cfg.LoanHandler.RegisterRoutes(api, cfg.AuthMiddleware)
+		}
+		if cfg.RepaymentHandler != nil {
+			cfg.RepaymentHandler.RegisterRoutes(api, cfg.AuthMiddleware)
+		}
+		if cfg.BorrowerHandler != nil {
+			cfg.BorrowerHandler.RegisterRoutes(api, cfg.AuthMiddleware)
+		}
 	})
 
 	return r
 }
-

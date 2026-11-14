@@ -92,4 +92,3 @@ func TestListPeersQuery_Pagination(t *testing.T) {
 	q3.Sanitize()
 	assert.Equal(t, 100, q3.PageSize)
 }
-

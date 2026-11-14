@@ -16,4 +16,3 @@ func Timeout(timeout time.Duration) func(http.Handler) http.Handler {
 		})
 	}
 }
-

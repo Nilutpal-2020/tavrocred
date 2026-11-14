@@ -50,6 +50,9 @@ docker compose up --build
 
 Access:
 - API: `http://localhost:8080`
+- API Documentation (Swagger UI): `http://localhost:8080/docs`
+- API Reference (Scalar UI): `http://localhost:8080/docs/scalar`
+- Raw OpenAPI Spec: `http://localhost:8080/docs/openapi.yaml`
 - API Health: `http://localhost:8080/healthz`
 - API Readiness: `http://localhost:8080/readyz`
 - Mailpit Web UI: `http://localhost:8025`
@@ -63,6 +66,23 @@ docker compose up -d postgres mailpit
 
 # Run tests
 make test
+
+# Run API server (automatically matches git branch: dev vs prod)
+make run
+
+# Explicitly run development mode (live go run with .env)
+make run-dev
+
+# Explicitly run production mode (optimized binary build & validation)
+make run-prod
+
+# Override target branch/mode
+make run BRANCH=production
+
+# Run background worker
+make run-worker
+make run-worker-dev
+make run-worker-prod
 
 # Build binaries
 make build

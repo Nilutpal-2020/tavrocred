@@ -57,4 +57,3 @@ func (s *Server) Start() error {
 	slog.Info("http server stopped cleanly")
 	return nil
 }
-

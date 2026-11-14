@@ -40,4 +40,3 @@ func GetUserEmailFromContext(ctx context.Context) string {
 	}
 	return ""
 }
-

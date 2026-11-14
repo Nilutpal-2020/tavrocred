@@ -250,4 +250,3 @@ func TestAuthService_GetMe(t *testing.T) {
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, internalErrors.ErrNotFound)
 }
-

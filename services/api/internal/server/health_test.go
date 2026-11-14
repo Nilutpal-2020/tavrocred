@@ -49,4 +49,3 @@ func TestHealthAndReadinessEndpoints(t *testing.T) {
 	assert.Equal(t, http.StatusServiceUnavailable, recReadyFailing.Code)
 	assert.Contains(t, recReadyFailing.Body.String(), "SERVICE_UNAVAILABLE")
 }
-

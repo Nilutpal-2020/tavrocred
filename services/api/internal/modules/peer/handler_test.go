@@ -162,4 +162,3 @@ func TestPeerHandler_FullCRUDAndOwnershipIsolation(t *testing.T) {
 	app.ServeHTTP(recGetDeleted, reqGetDeleted)
 	assert.Equal(t, http.StatusNotFound, recGetDeleted.Code)
 }
-

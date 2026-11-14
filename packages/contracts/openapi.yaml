@@ -307,6 +307,729 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /api/v1/loans:
+    post:
+      summary: Create a new loan in DRAFT status
+      operationId: createLoan
+      tags:
+        - Loans
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLoanRequest'
+      responses:
+        '201':
+          description: Loan created successfully in DRAFT status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponseWrapper'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+    get:
+      summary: List loans for authenticated lender
+      operationId: listLoans
+      tags:
+        - Loans
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: peer_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          description: Filter by status (DRAFT, ACTIVE, COMPLETED, CANCELLED, DISPUTED)
+          schema:
+            type: string
+            enum: [DRAFT, ACTIVE, COMPLETED, CANCELLED, DISPUTED]
+      responses:
+        '200':
+          description: List of loans with financial summary and pagination
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanListResponseWrapper'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/loans/{loanID}:
+    get:
+      summary: Get loan details with financial breakdown
+      operationId: getLoanByID
+      tags:
+        - Loans
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: loanID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Loan details with financial calculations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponseWrapper'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update terms of a draft loan
+      operationId: updateDraftLoan
+      tags:
+        - Loans
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: loanID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLoanRequest'
+      responses:
+        '200':
+          description: Draft loan updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponseWrapper'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/v1/loans/{loanID}/activate:
+    post:
+      summary: Transition loan from DRAFT to ACTIVE
+      operationId: activateLoan
+      tags:
+        - Loans
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: loanID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Loan activated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponseWrapper'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/v1/loans/{loanID}/cancel:
+    post:
+      summary: Cancel a draft or active loan
+      operationId: cancelLoan
+      tags:
+        - Loans
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: loanID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelLoanRequest'
+      responses:
+        '200':
+          description: Loan cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponseWrapper'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/v1/loans/{loanID}/dispute:
+    post:
+      summary: Mark loan as disputed
+      operationId: disputeLoan
+      tags:
+        - Loans
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: loanID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisputeLoanRequest'
+      responses:
+        '200':
+          description: Loan disputed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponseWrapper'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/v1/loans/{loanID}/amend:
+    post:
+      summary: Amend terms of an active loan (increments version)
+      operationId: amendLoan
+      tags:
+        - Loans
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: loanID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AmendLoanRequest'
+      responses:
+        '200':
+          description: Loan amended with new version
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponseWrapper'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/v1/loans/{loanID}/events:
+    get:
+      summary: Get append-only audit ledger events for loan
+      operationId: listLoanEvents
+      tags:
+        - Loans
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: loanID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Append-only audit history of the loan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LedgerEvent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/loans/{loanID}/repayments:
+    post:
+      summary: Record a repayment for a loan
+      operationId: recordRepayment
+      tags:
+        - Repayments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: loanID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordRepaymentRequest'
+      responses:
+        '201':
+          description: Repayment recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepaymentSingleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+    get:
+      summary: List repayments for a loan
+      operationId: listRepayments
+      tags:
+        - Repayments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: loanID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING_VERIFICATION, CONFIRMED, REJECTED, REVERSED]
+      responses:
+        '200':
+          description: Paginated repayments list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepaymentListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/repayments/{repaymentID}:
+    get:
+      summary: Get repayment details by ID
+      operationId: getRepayment
+      tags:
+        - Repayments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: repaymentID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Repayment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepaymentSingleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/repayments/{repaymentID}/confirm:
+    post:
+      summary: Confirm a pending repayment
+      operationId: confirmRepayment
+      tags:
+        - Repayments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: repaymentID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Repayment confirmed and ledger updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepaymentSingleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/v1/repayments/{repaymentID}/reject:
+    post:
+      summary: Reject a pending repayment
+      operationId: rejectRepayment
+      tags:
+        - Repayments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: repaymentID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectRepaymentRequest'
+      responses:
+        '200':
+          description: Repayment rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepaymentSingleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/v1/repayments/{repaymentID}/reverse:
+    post:
+      summary: Reverse a confirmed repayment
+      operationId: reverseRepayment
+      tags:
+        - Repayments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: repaymentID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReverseRepaymentRequest'
+      responses:
+        '200':
+          description: Repayment reversed and loan balance reopened
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepaymentSingleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/v1/loans/{loanID}/borrower-link:
+    post:
+      summary: Generate a secure access link for borrower
+      operationId: generateBorrowerLink
+      tags:
+        - Borrower Portal
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: loanID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expires_in_hours:
+                  type: integer
+                  default: 72
+                  example: 72
+      responses:
+        '201':
+          description: Borrower link generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BorrowerLinkSingleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/v1/loans/{loanID}/borrower-link/revoke:
+    post:
+      summary: Revoke active borrower access links for a loan
+      operationId: revokeBorrowerLink
+      tags:
+        - Borrower Portal
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: loanID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Links revoked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/public/borrower/access:
+    post:
+      summary: Exchange secure raw token for borrower session
+      operationId: exchangeBorrowerAccess
+      tags:
+        - Borrower Portal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  example: "4d7c08a472c1c683b51ee2bcde9990ad31f133887b8979c5cb2910bb3a23a31c"
+      responses:
+        '200':
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BorrowerAccessSingleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/public/borrower/loan:
+    get:
+      summary: Get loan details and ledger status for borrower
+      operationId: getBorrowerLoanDetails
+      tags:
+        - Borrower Portal
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Full borrower loan view
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BorrowerLoanViewSingleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/public/borrower/acknowledge:
+    post:
+      summary: Acknowledge loan agreement terms
+      operationId: acknowledgeBorrowerLoan
+      tags:
+        - Borrower Portal
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Loan acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BorrowerAckSingleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/v1/public/borrower/dispute:
+    post:
+      summary: Dispute loan details
+      operationId: disputeBorrowerLoan
+      tags:
+        - Borrower Portal
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  example: "Loan start date is incorrect"
+      responses:
+        '200':
+          description: Dispute recorded and loan status updated to DISPUTED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BorrowerAckSingleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/v1/public/borrower/repayment-reported:
+    post:
+      summary: Self-report external repayment made by borrower
+      operationId: reportBorrowerRepayment
+      tags:
+        - Borrower Portal
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BorrowerReportRepaymentRequest'
+      responses:
+        '201':
+          description: Repayment self-reported in PENDING_VERIFICATION status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepaymentSingleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
 components:
   securitySchemes:
     BearerAuth:
@@ -547,6 +1270,540 @@ components:
           example: false
         error:
           $ref: '#/components/schemas/ErrorDetail'
+
+    CreateLoanRequest:
+      type: object
+      required:
+        - peer_id
+        - principal_amount
+        - interest_type
+        - start_date
+      properties:
+        peer_id:
+          type: string
+          format: uuid
+        principal_amount:
+          type: string
+          example: "10000.00"
+        currency:
+          type: string
+          default: "INR"
+          example: "INR"
+        interest_type:
+          type: string
+          enum: [NONE, SIMPLE]
+          example: "SIMPLE"
+        annual_interest_rate:
+          type: string
+          example: "12.00"
+        start_date:
+          type: string
+          format: date
+          example: "2026-01-01"
+        due_date:
+          type: string
+          format: date
+          example: "2026-12-31"
+        notes:
+          type: string
+
+    UpdateLoanRequest:
+      type: object
+      required:
+        - peer_id
+        - principal_amount
+        - interest_type
+        - start_date
+      properties:
+        peer_id:
+          type: string
+          format: uuid
+        principal_amount:
+          type: string
+        currency:
+          type: string
+        interest_type:
+          type: string
+          enum: [NONE, SIMPLE]
+        annual_interest_rate:
+          type: string
+        start_date:
+          type: string
+          format: date
+        due_date:
+          type: string
+          format: date
+        notes:
+          type: string
+
+    AmendLoanRequest:
+      type: object
+      required:
+        - principal_amount
+        - interest_type
+        - reason
+      properties:
+        principal_amount:
+          type: string
+        interest_type:
+          type: string
+          enum: [NONE, SIMPLE]
+        annual_interest_rate:
+          type: string
+        due_date:
+          type: string
+          format: date
+        notes:
+          type: string
+        reason:
+          type: string
+
+    CancelLoanRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+
+    DisputeLoanRequest:
+      type: object
+      required:
+        - reason
+      properties:
+        reason:
+          type: string
+
+    FinancialSummary:
+      type: object
+      properties:
+        principal_amount:
+          type: string
+        interest_accrued:
+          type: string
+        total_amount_due:
+          type: string
+        total_confirmed_repayments:
+          type: string
+        outstanding_balance:
+          type: string
+        elapsed_days:
+          type: integer
+        calculation_date:
+          type: string
+          format: date
+
+    Loan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        peer_id:
+          type: string
+          format: uuid
+        peer_name:
+          type: string
+        peer_email:
+          type: string
+          nullable: true
+        principal_amount:
+          type: string
+        currency:
+          type: string
+        interest_type:
+          type: string
+        annual_interest_rate:
+          type: string
+        day_count_convention:
+          type: string
+        start_date:
+          type: string
+          format: date
+        due_date:
+          type: string
+          format: date
+          nullable: true
+        status:
+          type: string
+          enum: [DRAFT, ACTIVE, COMPLETED, CANCELLED, DISPUTED]
+        version:
+          type: integer
+        notes:
+          type: string
+          nullable: true
+        financial_summary:
+          $ref: '#/components/schemas/FinancialSummary'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    LoanResponseWrapper:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/Loan'
+
+    LoanListResponseWrapper:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Loan'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    LedgerEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        loan_id:
+          type: string
+          format: uuid
+          nullable: true
+        event_type:
+          type: string
+        actor_type:
+          type: string
+        actor_id:
+          type: string
+          format: uuid
+          nullable: true
+        payload:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+
+    RecordRepaymentRequest:
+      type: object
+      required:
+        - amount
+        - payment_date
+        - payment_method
+      properties:
+        amount:
+          type: string
+          example: "5000.00"
+        currency:
+          type: string
+          example: "INR"
+          default: "INR"
+        payment_date:
+          type: string
+          format: date
+          example: "2026-01-15"
+        payment_method:
+          type: string
+          enum: [UPI, BANK_TRANSFER, CASH, OTHER]
+          example: "UPI"
+        external_reference:
+          type: string
+          nullable: true
+          example: "UPI-REF-99882211"
+        notes:
+          type: string
+          nullable: true
+          example: "January installment"
+        confirmed_directly:
+          type: boolean
+          default: false
+          example: true
+
+    RejectRepaymentRequest:
+      type: object
+      required:
+        - reason
+      properties:
+        reason:
+          type: string
+          example: "Funds did not credit into account"
+
+    ReverseRepaymentRequest:
+      type: object
+      required:
+        - reason
+      properties:
+        reason:
+          type: string
+          example: "Cheque bounced on clearing"
+
+    RepaymentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        loan_id:
+          type: string
+          format: uuid
+        amount:
+          type: string
+          example: "5000.00"
+        currency:
+          type: string
+          example: "INR"
+        payment_date:
+          type: string
+          format: date
+          example: "2026-01-15"
+        payment_method:
+          type: string
+          example: "UPI"
+        external_reference:
+          type: string
+          nullable: true
+          example: "UPI-REF-99882211"
+        status:
+          type: string
+          enum: [PENDING_VERIFICATION, CONFIRMED, REJECTED, REVERSED]
+          example: "CONFIRMED"
+        source:
+          type: string
+          enum: [LENDER_RECORDED, BORROWER_REPORTED]
+          example: "LENDER_RECORDED"
+        confirmed_at:
+          type: string
+          format: date-time
+          nullable: true
+        confirmed_by:
+          type: string
+          format: uuid
+          nullable: true
+        rejection_reason:
+          type: string
+          nullable: true
+        reversed_at:
+          type: string
+          format: date-time
+          nullable: true
+        reversal_reason:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    RepaymentSingleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/RepaymentResponse'
+
+    RepaymentListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RepaymentResponse'
+        meta:
+          $ref: '#/components/schemas/Meta'
+
+    BorrowerLinkSingleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+              example: "4d7c08a472c1c683b51ee2bcde9990ad31f133887b8979c5cb2910bb3a23a31c"
+            url:
+              type: string
+              example: "http://localhost:3000/portal/loans?token=4d7c08a472c1c683b51ee2bcde9990ad31f133887b8979c5cb2910bb3a23a31c"
+            expires_at:
+              type: string
+              format: date-time
+
+    BorrowerAccessSingleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            session_token:
+              type: string
+            loan_id:
+              type: string
+              format: uuid
+            expires_at:
+              type: string
+              format: date-time
+
+    BorrowerLoanViewSingleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            loan:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                currency:
+                  type: string
+                  example: "INR"
+                principal_amount:
+                  type: string
+                  example: "15000.00"
+                interest_type:
+                  type: string
+                  example: "NONE"
+                annual_interest_rate:
+                  type: string
+                  example: "0.00"
+                day_count_convention:
+                  type: string
+                  example: "ACTUAL_365"
+                start_date:
+                  type: string
+                  format: date
+                due_date:
+                  type: string
+                  format: date
+                  nullable: true
+                status:
+                  type: string
+                  example: "ACTIVE"
+                version:
+                  type: integer
+                  example: 1
+                notes:
+                  type: string
+                  nullable: true
+            summary:
+              $ref: '#/components/schemas/LoanSummary'
+            lender:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Lender One"
+                email:
+                  type: string
+                  example: "lender@example.com"
+            latest_acknowledgement:
+              type: object
+              nullable: true
+              properties:
+                version:
+                  type: integer
+                  example: 1
+                status:
+                  type: string
+                  example: "ACKNOWLEDGED"
+                dispute_reason:
+                  type: string
+                  nullable: true
+                responded_at:
+                  type: string
+                  format: date-time
+            repayments:
+              type: array
+              items:
+                $ref: '#/components/schemas/RepaymentResponse'
+
+    BorrowerAckSingleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            loan_id:
+              type: string
+              format: uuid
+            peer_id:
+              type: string
+              format: uuid
+            version:
+              type: integer
+              example: 1
+            status:
+              type: string
+              enum: [ACKNOWLEDGED, DISPUTED]
+              example: "ACKNOWLEDGED"
+            dispute_reason:
+              type: string
+              nullable: true
+            responded_at:
+              type: string
+              format: date-time
+
+    BorrowerReportRepaymentRequest:
+      type: object
+      required:
+        - amount
+        - payment_date
+        - payment_method
+      properties:
+        amount:
+          type: string
+          example: "3500.00"
+        payment_date:
+          type: string
+          format: date
+          example: "2026-01-10"
+        payment_method:
+          type: string
+          enum: [UPI, BANK_TRANSFER, CASH, OTHER]
+          example: "UPI"
+        external_reference:
+          type: string
+          nullable: true
+          example: "UPI-REF-001"
+        notes:
+          type: string
+          nullable: true
+          example: "Transferred via GPay"
 
   responses:
     BadRequest:

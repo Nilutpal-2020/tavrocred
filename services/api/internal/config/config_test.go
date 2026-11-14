@@ -62,4 +62,3 @@ func TestConfig_Validate_ProductionJWTLength(t *testing.T) {
 	cfg.JWTSecret = "this-is-a-valid-production-secret-with-more-than-32-chars"
 	assert.NoError(t, cfg.Validate())
 }
-

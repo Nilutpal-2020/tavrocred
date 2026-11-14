@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -57,7 +59,32 @@ func (db *DB) Ping(ctx context.Context) error {
 	return db.Pool.Ping(ctx)
 }
 
+func ResolveMigrationsDir(dir string) string {
+	candidates := []string{
+		dir,
+		"migrations",
+		filepath.Join("services", "api", "migrations"),
+		filepath.Join("..", "migrations"),
+		filepath.Join("..", "..", "migrations"),
+		filepath.Join("..", "..", "services", "api", "migrations"),
+		"/app/migrations",
+	}
+
+	for _, c := range candidates {
+		if c == "" {
+			continue
+		}
+		if info, err := os.Stat(c); err == nil && info.IsDir() {
+			return c
+		}
+	}
+
+	return dir
+}
+
 func (db *DB) RunMigrations(migrationsDir string) error {
+	targetDir := ResolveMigrationsDir(migrationsDir)
+
 	sqlDB, err := sql.Open("pgx", db.url)
 	if err != nil {
 		return fmt.Errorf("failed to open sql db for migrations: %w", err)
@@ -68,12 +95,11 @@ func (db *DB) RunMigrations(migrationsDir string) error {
 		return fmt.Errorf("failed to set goose dialect: %w", err)
 	}
 
-	slog.Info("running database migrations", "dir", migrationsDir)
-	if err := goose.Up(sqlDB, migrationsDir); err != nil {
+	slog.Info("running database migrations", "dir", targetDir)
+	if err := goose.Up(sqlDB, targetDir); err != nil {
 		return fmt.Errorf("failed to run goose migrations: %w", err)
 	}
 
 	slog.Info("database migrations applied successfully")
 	return nil
 }
-

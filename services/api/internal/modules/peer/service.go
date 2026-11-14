@@ -94,4 +94,3 @@ func (s *peerService) Update(ctx context.Context, id, userID uuid.UUID, req Upda
 func (s *peerService) Delete(ctx context.Context, id, userID uuid.UUID) error {
 	return s.repo.Delete(ctx, id, userID)
 }
-

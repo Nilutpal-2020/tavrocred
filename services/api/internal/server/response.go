@@ -107,4 +107,3 @@ func HandleError(w http.ResponseWriter, err error) {
 
 	Error(w, http.StatusInternalServerError, "INTERNAL_ERROR", "an unexpected error occurred", nil)
 }
-

@@ -171,4 +171,3 @@ func (q *ListPeersQuery) Offset() int32 {
 func (q *ListPeersQuery) Limit() int32 {
 	return int32(q.PageSize)
 }
-

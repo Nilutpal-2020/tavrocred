@@ -145,4 +145,3 @@ func TestAuthHandler_RegisterAndLoginFlow(t *testing.T) {
 	app.ServeHTTP(recLogout, reqLogout)
 	assert.Equal(t, http.StatusOK, recLogout.Code)
 }
-

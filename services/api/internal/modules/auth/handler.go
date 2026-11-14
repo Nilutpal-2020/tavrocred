@@ -113,4 +113,3 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 
 	server.JSON(w, http.StatusOK, res)
 }
-

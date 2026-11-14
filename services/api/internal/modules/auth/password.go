@@ -93,4 +93,3 @@ func (h *PasswordHasher) Verify(password, encodedHash string) (bool, error) {
 
 	return false, nil
 }
-

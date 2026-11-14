@@ -12,7 +12,10 @@ import (
 	"tavrocred/services/api/internal/database"
 	"tavrocred/services/api/internal/middleware"
 	"tavrocred/services/api/internal/modules/auth"
+	"tavrocred/services/api/internal/modules/borrower"
+	"tavrocred/services/api/internal/modules/loan"
 	"tavrocred/services/api/internal/modules/peer"
+	"tavrocred/services/api/internal/modules/repayment"
 	"tavrocred/services/api/internal/server"
 )
 
@@ -71,17 +74,39 @@ func main() {
 	peerService := peer.NewService(peerRepo)
 	peerHandler := peer.NewHandler(peerService)
 
+	// Repayment dependencies
+	repaymentRepo := repayment.NewRepository(queries)
+
+	// Loan dependencies
+	loanCalculator := loan.NewCalculator()
+	loanRepo := loan.NewRepository(queries)
+	loanService := loan.NewService(loanRepo, peerRepo, loanCalculator, repaymentRepo)
+	loanHandler := loan.NewHandler(loanService)
+
+	repaymentService := repayment.NewService(repaymentRepo, loanRepo, loanCalculator)
+	repaymentHandler := repayment.NewHandler(repaymentService)
+
+	// Borrower portal dependencies
+	borrowerTokenManager := borrower.NewTokenManager(cfg.JWTSecret)
+	borrowerRepo := borrower.NewRepository(queries)
+	borrowerService := borrower.NewService(borrowerRepo, loanRepo, repaymentRepo, authRepo, loanCalculator, borrowerTokenManager, cfg.AppBaseURL)
+	borrowerHandler := borrower.NewHandler(borrowerService, borrowerTokenManager)
+
 	authMiddleware := middleware.Authenticate(tokenManager)
 
 	router := server.NewRouter(server.RouterConfig{
-		DB:             db,
-		AuthHandler:    authHandler,
-		PeerHandler:    peerHandler,
-		AuthMiddleware: authMiddleware,
-		RequestIDMW:    middleware.RequestID,
-		LoggerMW:       middleware.Logger,
-		RecoverMW:      middleware.Recover,
-		TimeoutMW:      middleware.Timeout(30 * time.Second),
+		DB:               db,
+		AuthHandler:      authHandler,
+		PeerHandler:      peerHandler,
+		LoanHandler:      loanHandler,
+		RepaymentHandler: repaymentHandler,
+		BorrowerHandler:  borrowerHandler,
+		CorsMW:           middleware.CORS(cfg.CORSAllowedOrigins),
+		AuthMiddleware:   authMiddleware,
+		RequestIDMW:      middleware.RequestID,
+		LoggerMW:         middleware.Logger,
+		RecoverMW:        middleware.Recover,
+		TimeoutMW:        middleware.Timeout(30 * time.Second),
 	})
 
 	srv := server.NewServer(cfg.Port, router)
@@ -90,4 +115,3 @@ func main() {
 		os.Exit(1)
 	}
 }
-

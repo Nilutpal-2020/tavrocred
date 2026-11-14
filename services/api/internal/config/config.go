@@ -16,6 +16,7 @@ type Config struct {
 	JWTSecret              string
 	JWTExpiration          time.Duration
 	RefreshTokenExpiration time.Duration
+	AppBaseURL             string
 	CORSAllowedOrigins     []string
 	Argon2Memory           uint32
 	Argon2Iterations       uint32
@@ -32,6 +33,7 @@ func Load() (*Config, error) {
 		JWTSecret:              getEnv("JWT_SECRET", "super-secret-tavrocred-jwt-development-key-32bytes!"),
 		JWTExpiration:          15 * time.Minute,
 		RefreshTokenExpiration: 30 * 24 * time.Hour,
+		AppBaseURL:             getEnv("APP_BASE_URL", "http://localhost:3000"),
 		CORSAllowedOrigins:     strings.Split(getEnv("CORS_ALLOWED_ORIGINS", "http://localhost:3000"), ","),
 		Argon2Memory:           64 * 1024, // 64 MB
 		Argon2Iterations:       3,

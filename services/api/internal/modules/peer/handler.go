@@ -162,4 +162,3 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		"message": "peer deleted successfully",
 	})
 }
-

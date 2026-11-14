@@ -146,4 +146,3 @@ func toDomainPeer(p gen.Peers) *Peer {
 		UpdatedAt: p.UpdatedAt.Time,
 	}
 }
-

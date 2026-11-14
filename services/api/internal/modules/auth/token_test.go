@@ -80,4 +80,3 @@ func TestTokenManager_RefreshTokens(t *testing.T) {
 	assert.NotEqual(t, token1, token2)
 	assert.NotEqual(t, hash1, hash2)
 }
-

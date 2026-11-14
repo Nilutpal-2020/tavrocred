@@ -71,4 +71,3 @@ func TestPasswordHasher_InvalidHashFormat(t *testing.T) {
 	_, err = hasher.Verify("password", "$bcrypt$v=19$m=65536,t=3,p=2$salt$hash")
 	assert.ErrorIs(t, err, auth.ErrInvalidHash)
 }
-

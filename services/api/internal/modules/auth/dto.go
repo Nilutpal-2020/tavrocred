@@ -109,10 +109,16 @@ func ToUserResponse(u *User) UserResponse {
 	}
 }
 
+type TokenPair struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int64  `json:"expires_in"`
+}
+
 type AuthResponse struct {
 	User         UserResponse `json:"user"`
 	AccessToken  string       `json:"access_token"`
 	RefreshToken string       `json:"refresh_token"`
 	ExpiresIn    int64        `json:"expires_in"` // seconds
+	Tokens       TokenPair    `json:"tokens"`
 }
-

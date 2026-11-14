@@ -30,4 +30,3 @@ func (rt *RefreshToken) IsActive() bool {
 	}
 	return time.Now().UTC().Before(rt.ExpiresAt)
 }
-

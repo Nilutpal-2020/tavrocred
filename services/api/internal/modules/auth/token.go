@@ -80,7 +80,7 @@ func (tm *TokenManager) ValidateAccessToken(tokenString string) (*Claims, error)
 	}
 
 	claims, ok := token.Claims.(*Claims)
-	if !ok || !token.Valid {
+	if !ok || !token.Valid || claims.Issuer != "tavrocred" || claims.Email == "" || claims.UserID == uuid.Nil {
 		return nil, ErrTokenMalformed
 	}
 

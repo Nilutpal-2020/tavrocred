@@ -8,21 +8,51 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
+	AmendLoan(ctx context.Context, arg AmendLoanParams) (Loans, error)
+	ConfirmRepayment(ctx context.Context, arg ConfirmRepaymentParams) (Repayments, error)
+	CountLoansByUser(ctx context.Context, arg CountLoansByUserParams) (int64, error)
 	CountPeersByUser(ctx context.Context, arg CountPeersByUserParams) (int64, error)
+	CountRepaymentsByLoan(ctx context.Context, arg CountRepaymentsByLoanParams) (int64, error)
+	CreateBorrowerAccessToken(ctx context.Context, arg CreateBorrowerAccessTokenParams) (BorrowerAccessTokens, error)
+	CreateLedgerEvent(ctx context.Context, arg CreateLedgerEventParams) (LedgerEvents, error)
+	CreateLoan(ctx context.Context, arg CreateLoanParams) (Loans, error)
+	CreateLoanAcknowledgement(ctx context.Context, arg CreateLoanAcknowledgementParams) (LoanAcknowledgements, error)
 	CreatePeer(ctx context.Context, arg CreatePeerParams) (Peers, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshTokens, error)
+	CreateRepayment(ctx context.Context, arg CreateRepaymentParams) (Repayments, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (Users, error)
+	DeleteDraftLoan(ctx context.Context, arg DeleteDraftLoanParams) (int64, error)
 	DeletePeer(ctx context.Context, arg DeletePeerParams) (int64, error)
+	GetActiveBorrowerAccessTokenByHash(ctx context.Context, tokenHash string) (BorrowerAccessTokens, error)
+	GetConfirmedRepaymentsTotalByLoan(ctx context.Context, arg GetConfirmedRepaymentsTotalByLoanParams) (pgtype.Numeric, error)
+	GetLatestAcknowledgementByLoan(ctx context.Context, loanID uuid.UUID) (LoanAcknowledgements, error)
+	GetLoanByIDAndPeer(ctx context.Context, arg GetLoanByIDAndPeerParams) (Loans, error)
+	GetLoanByIDAndUser(ctx context.Context, arg GetLoanByIDAndUserParams) (Loans, error)
+	GetLoanForUpdate(ctx context.Context, arg GetLoanForUpdateParams) (Loans, error)
 	GetPeerByIDAndUser(ctx context.Context, arg GetPeerByIDAndUserParams) (Peers, error)
 	GetRefreshTokenByHash(ctx context.Context, tokenHash string) (RefreshTokens, error)
+	GetRepaymentByIDAndUser(ctx context.Context, arg GetRepaymentByIDAndUserParams) (Repayments, error)
+	GetRepaymentForUpdate(ctx context.Context, arg GetRepaymentForUpdateParams) (Repayments, error)
 	GetUserByEmail(ctx context.Context, lower string) (Users, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (Users, error)
+	ListAcknowledgementsByLoan(ctx context.Context, loanID uuid.UUID) ([]LoanAcknowledgements, error)
+	ListLedgerEventsByLoan(ctx context.Context, arg ListLedgerEventsByLoanParams) ([]LedgerEvents, error)
+	ListLoansByUser(ctx context.Context, arg ListLoansByUserParams) ([]ListLoansByUserRow, error)
 	ListPeersByUser(ctx context.Context, arg ListPeersByUserParams) ([]Peers, error)
+	ListRepaymentsByLoan(ctx context.Context, arg ListRepaymentsByLoanParams) ([]Repayments, error)
+	MarkBorrowerAccessTokenUsed(ctx context.Context, id uuid.UUID) (BorrowerAccessTokens, error)
+	RejectRepayment(ctx context.Context, arg RejectRepaymentParams) (Repayments, error)
+	ReverseRepayment(ctx context.Context, arg ReverseRepaymentParams) (Repayments, error)
 	RevokeAllUserRefreshTokens(ctx context.Context, userID uuid.UUID) error
+	RevokeBorrowerAccessTokensByLoan(ctx context.Context, arg RevokeBorrowerAccessTokensByLoanParams) (int64, error)
 	RevokeRefreshToken(ctx context.Context, tokenHash string) error
+	UpdateDraftLoan(ctx context.Context, arg UpdateDraftLoanParams) (Loans, error)
+	UpdateLoanStatus(ctx context.Context, arg UpdateLoanStatusParams) (Loans, error)
+	UpdateLoanStatusByPeer(ctx context.Context, arg UpdateLoanStatusByPeerParams) (Loans, error)
 	UpdatePeer(ctx context.Context, arg UpdatePeerParams) (Peers, error)
 }
 

@@ -9,6 +9,61 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type BorrowerAccessTokens struct {
+	ID        uuid.UUID          `json:"id"`
+	LoanID    uuid.UUID          `json:"loan_id"`
+	PeerID    uuid.UUID          `json:"peer_id"`
+	UserID    uuid.UUID          `json:"user_id"`
+	TokenHash string             `json:"token_hash"`
+	Purpose   string             `json:"purpose"`
+	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+	RevokedAt pgtype.Timestamptz `json:"revoked_at"`
+	UsedAt    pgtype.Timestamptz `json:"used_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type LedgerEvents struct {
+	ID        uuid.UUID          `json:"id"`
+	UserID    uuid.UUID          `json:"user_id"`
+	LoanID    pgtype.UUID        `json:"loan_id"`
+	EventType string             `json:"event_type"`
+	ActorType string             `json:"actor_type"`
+	ActorID   pgtype.UUID        `json:"actor_id"`
+	Payload   []byte             `json:"payload"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type LoanAcknowledgements struct {
+	ID            uuid.UUID          `json:"id"`
+	LoanID        uuid.UUID          `json:"loan_id"`
+	PeerID        uuid.UUID          `json:"peer_id"`
+	Version       int32              `json:"version"`
+	Status        string             `json:"status"`
+	DisputeReason pgtype.Text        `json:"dispute_reason"`
+	IpAddress     pgtype.Text        `json:"ip_address"`
+	UserAgent     pgtype.Text        `json:"user_agent"`
+	RespondedAt   pgtype.Timestamptz `json:"responded_at"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+}
+
+type Loans struct {
+	ID                 uuid.UUID          `json:"id"`
+	UserID             uuid.UUID          `json:"user_id"`
+	PeerID             uuid.UUID          `json:"peer_id"`
+	PrincipalAmount    pgtype.Numeric     `json:"principal_amount"`
+	Currency           string             `json:"currency"`
+	InterestType       string             `json:"interest_type"`
+	AnnualInterestRate pgtype.Numeric     `json:"annual_interest_rate"`
+	DayCountConvention string             `json:"day_count_convention"`
+	StartDate          pgtype.Date        `json:"start_date"`
+	DueDate            pgtype.Date        `json:"due_date"`
+	Status             string             `json:"status"`
+	Version            int32              `json:"version"`
+	Notes              pgtype.Text        `json:"notes"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Peers struct {
 	ID        uuid.UUID          `json:"id"`
 	UserID    uuid.UUID          `json:"user_id"`
@@ -27,6 +82,27 @@ type RefreshTokens struct {
 	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
 	RevokedAt pgtype.Timestamptz `json:"revoked_at"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type Repayments struct {
+	ID                uuid.UUID          `json:"id"`
+	UserID            uuid.UUID          `json:"user_id"`
+	LoanID            uuid.UUID          `json:"loan_id"`
+	Amount            pgtype.Numeric     `json:"amount"`
+	Currency          string             `json:"currency"`
+	PaymentDate       pgtype.Date        `json:"payment_date"`
+	PaymentMethod     string             `json:"payment_method"`
+	ExternalReference pgtype.Text        `json:"external_reference"`
+	Status            string             `json:"status"`
+	Source            string             `json:"source"`
+	ConfirmedAt       pgtype.Timestamptz `json:"confirmed_at"`
+	ConfirmedBy       pgtype.UUID        `json:"confirmed_by"`
+	RejectionReason   pgtype.Text        `json:"rejection_reason"`
+	ReversedAt        pgtype.Timestamptz `json:"reversed_at"`
+	ReversalReason    pgtype.Text        `json:"reversal_reason"`
+	Notes             pgtype.Text        `json:"notes"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Users struct {
